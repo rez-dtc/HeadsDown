@@ -4,12 +4,22 @@ HeadDown is a lightweight, mouse-controlled keyboard rest mode for Windows 10 an
 
 The mouse stays active the entire time. Unlocking is always one click away.
 
+## Interface preview
+
+<p align="center">
+  <img src="docs/ready-state.svg" width="46%" alt="HeadDown ready-state interface preview">
+  <img src="docs/locked-timer.svg" width="46%" alt="HeadDown locked with a silent timer running">
+</p>
+
 ## Features
 
 - **Mouse-only lock and unlock** with one large button
 - **Global keyboard blocking** while HeadDown is locked
 - **Automatic recovery** when the app closes or stops running
 - **Always-on-top status window** while the keyboard is locked
+- **Silent heads-down timer** from 1 to 180 minutes
+- **Focus mode** that silences normal Windows toast notifications while locked
+- **Optional media-key passthrough** for volume, play/pause, next, previous, and stop
 - **Battery percentage and charging status** display
 - **Eco mode** that switches to Windows Power Saver and dims the built-in display
 - **Automatic screen-off timer** 10 seconds after locking
@@ -22,10 +32,23 @@ The mouse stays active the entire time. Unlocking is always one click away.
 1. Download `HeadDown-Windows.zip` from this repository and extract it.
 2. Make sure a working mouse or trackpad is available.
 3. Double-click `Start HeadDown.bat`.
-4. Click **LOCK KEYBOARD**.
-5. Click **UNLOCK KEYBOARD** with the mouse when you are finished.
+4. Choose a timer length or turn the silent timer off.
+5. Click **LOCK KEYBOARD**.
+6. Click **UNLOCK KEYBOARD** with the mouse when you are finished.
 
 If Windows blocks the downloaded script, right-click `HeadDown.ps1`, select **Properties**, check **Unblock**, select **Apply**, and launch it again.
+
+## Silent timer
+
+The timer starts when the keyboard is locked and never plays an alarm. When it reaches zero, HeadDown wakes the display, restores Eco and Focus settings, and brings the window forward. The keyboard stays locked until **UNLOCK KEYBOARD** is clicked, preventing accidental input if you are still resting on it.
+
+The timer accepts any whole number from 1 to 180 minutes.
+
+## Focus and media keys
+
+Focus mode temporarily disables normal Windows toast notifications while the keyboard is locked and restores the previous notification setting when the timer finishes, the keyboard is unlocked, or the app closes. A recovery marker lets HeadDown repair the setting the next time it opens if the previous session ended unexpectedly.
+
+When media-key passthrough is enabled, volume mute/down/up and playback previous/next/stop/play-pause continue working. All ordinary typing and shortcut keys remain blocked.
 
 ## Battery controls
 
@@ -62,6 +85,7 @@ README.txt            Offline instructions included with the download
 README.md             GitHub project documentation
 LICENSE               MIT license
 HeadDown-Windows.zip   Ready-to-run Windows download
+docs/*.svg             Ready and locked interface previews
 ```
 
 ## Run from PowerShell

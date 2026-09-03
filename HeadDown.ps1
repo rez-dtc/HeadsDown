@@ -12,7 +12,66 @@ Add-Type -AssemblyName System.Drawing
 Add-Type -TypeDefinition @"
 using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+public class RoundedPanel : Panel
+{
+    public int Radius { get; set; }
+
+    public RoundedPanel()
+    {
+        Radius = 18;
+        Resize += delegate { UpdateRegion(); };
+    }
+
+    private void UpdateRegion()
+    {
+        if (Width < 2 || Height < 2) return;
+        int diameter = Math.Max(2, Radius * 2);
+        GraphicsPath path = new GraphicsPath();
+        path.AddArc(0, 0, diameter, diameter, 180, 90);
+        path.AddArc(Width - diameter, 0, diameter, diameter, 270, 90);
+        path.AddArc(Width - diameter, Height - diameter, diameter, diameter, 0, 90);
+        path.AddArc(0, Height - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+        Region previous = Region;
+        Region = new Region(path);
+        if (previous != null) previous.Dispose();
+        path.Dispose();
+    }
+}
+
+public class RoundedButton : Button
+{
+    public int Radius { get; set; }
+
+    public RoundedButton()
+    {
+        Radius = 12;
+        FlatStyle = FlatStyle.Flat;
+        FlatAppearance.BorderSize = 0;
+        Resize += delegate { UpdateRegion(); };
+    }
+
+    private void UpdateRegion()
+    {
+        if (Width < 2 || Height < 2) return;
+        int diameter = Math.Max(2, Radius * 2);
+        GraphicsPath path = new GraphicsPath();
+        path.AddArc(0, 0, diameter, diameter, 180, 90);
+        path.AddArc(Width - diameter, 0, diameter, diameter, 270, 90);
+        path.AddArc(Width - diameter, Height - diameter, diameter, diameter, 0, 90);
+        path.AddArc(0, Height - diameter, diameter, diameter, 90, 90);
+        path.CloseFigure();
+        Region previous = Region;
+        Region = new Region(path);
+        if (previous != null) previous.Dispose();
+        path.Dispose();
+    }
+}
 
 public static class KeyboardBlocker
 {
@@ -27,6 +86,7 @@ public static class KeyboardBlocker
     private static IntPtr hook = IntPtr.Zero;
 
     public static bool IsLocked { get { return hook != IntPtr.Zero; } }
+    public static bool AllowMediaKeys { get; set; }
 
     public static bool Lock()
     {
@@ -53,9 +113,25 @@ public static class KeyboardBlocker
             int message = wParam.ToInt32();
             if (message == WM_KEYDOWN || message == WM_KEYUP ||
                 message == WM_SYSKEYDOWN || message == WM_SYSKEYUP)
+            {
+                int key = Marshal.ReadInt32(lParam);
+                if (AllowMediaKeys && IsMediaKey(key))
+                    return CallNextHookEx(hook, nCode, wParam, lParam);
                 return (IntPtr)1;
+            }
         }
         return CallNextHookEx(hook, nCode, wParam, lParam);
+    }
+
+    private static bool IsMediaKey(int key)
+    {
+        return key == 0xAD || // volume mute
+               key == 0xAE || // volume down
+               key == 0xAF || // volume up
+               key == 0xB0 || // next track
+               key == 0xB1 || // previous track
+               key == 0xB2 || // stop
+               key == 0xB3;   // play/pause
     }
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -84,6 +160,30 @@ public static class MonitorPower
     {
         SendMessage((IntPtr)HWND_BROADCAST, WM_SYSCOMMAND, (IntPtr)SC_MONITORPOWER, (IntPtr)2);
     }
+
+    public static void TurnOn()
+    {
+        SendMessage((IntPtr)HWND_BROADCAST, WM_SYSCOMMAND, (IntPtr)SC_MONITORPOWER, (IntPtr)(-1));
+    }
+}
+
+public static class SettingsBroadcast
+{
+    private const int HWND_BROADCAST = 0xffff;
+    private const int WM_SETTINGCHANGE = 0x001A;
+    private const int SMTO_ABORTIFHUNG = 0x0002;
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr SendMessageTimeout(
+        IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam,
+        uint flags, uint timeout, out IntPtr result);
+
+    public static void Notify()
+    {
+        IntPtr result;
+        SendMessageTimeout((IntPtr)HWND_BROADCAST, WM_SETTINGCHANGE,
+            IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, 1000, out result);
+    }
 }
 "@
 
@@ -93,6 +193,12 @@ $script:OriginalBrightness = $null
 $script:Locked = $false
 $script:EcoApplied = $false
 $script:Countdown = 0
+$script:RestSeconds = 0
+$script:FocusApplied = $false
+$script:ToastPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications'
+$script:FocusMarkerName = 'HeadDownOriginalToastEnabled'
+$script:OriginalToastExists = $false
+$script:OriginalToastEnabled = $null
 
 function Invoke-PowerCfg {
     param([string]$Arguments)
@@ -144,6 +250,80 @@ function Set-InternalBrightness {
     catch { return $false }
 }
 
+function Capture-NotificationSetting {
+    try {
+        $settings = Get-ItemProperty -Path $script:ToastPath -ErrorAction Stop
+        $property = $settings.PSObject.Properties['ToastEnabled']
+        if ($null -ne $property) {
+            $script:OriginalToastExists = $true
+            $script:OriginalToastEnabled = [int]$property.Value
+        }
+    }
+    catch { }
+}
+
+function Recover-StaleFocusMode {
+    try {
+        $settings = Get-ItemProperty -Path $script:ToastPath -ErrorAction Stop
+        $marker = $settings.PSObject.Properties[$script:FocusMarkerName]
+        if ($null -eq $marker) { return }
+
+        $previous = [int]$marker.Value
+        if ($previous -eq -1) {
+            Remove-ItemProperty -Path $script:ToastPath -Name ToastEnabled -ErrorAction SilentlyContinue
+        }
+        else {
+            Set-ItemProperty -Path $script:ToastPath -Name ToastEnabled -Value $previous -Type DWord -ErrorAction Stop
+        }
+        Remove-ItemProperty -Path $script:ToastPath -Name $script:FocusMarkerName -ErrorAction SilentlyContinue
+        [SettingsBroadcast]::Notify()
+    }
+    catch { }
+}
+
+function Enable-FocusMode {
+    try {
+        $null = New-Item -Path $script:ToastPath -Force -ErrorAction Stop
+        $previous = if ($script:OriginalToastExists) { $script:OriginalToastEnabled } else { -1 }
+        Set-ItemProperty -Path $script:ToastPath -Name $script:FocusMarkerName -Value $previous -Type DWord -ErrorAction Stop
+        Set-ItemProperty -Path $script:ToastPath -Name ToastEnabled -Value 0 -Type DWord -ErrorAction Stop
+        [SettingsBroadcast]::Notify()
+        $script:FocusApplied = $true
+        return $true
+    }
+    catch { return $false }
+}
+
+function Restore-FocusMode {
+    if (-not $script:FocusApplied) { return }
+    try {
+        if ($script:OriginalToastExists) {
+            Set-ItemProperty -Path $script:ToastPath -Name ToastEnabled -Value $script:OriginalToastEnabled -Type DWord -ErrorAction Stop
+        }
+        else {
+            Remove-ItemProperty -Path $script:ToastPath -Name ToastEnabled -ErrorAction SilentlyContinue
+        }
+        Remove-ItemProperty -Path $script:ToastPath -Name $script:FocusMarkerName -ErrorAction SilentlyContinue
+        [SettingsBroadcast]::Notify()
+    }
+    catch { }
+    $script:FocusApplied = $false
+}
+
+function Update-RestTimerDisplay {
+    if ($script:RestSeconds -le 0) {
+        $timerDisplayLabel.Text = 'Timer: off'
+        return
+    }
+    $time = [TimeSpan]::FromSeconds($script:RestSeconds)
+    if ($time.TotalHours -ge 1) {
+        $timerDisplayLabel.Text = ('Timer: {0}:{1:00}:{2:00}' -f [int]$time.TotalHours, $time.Minutes, $time.Seconds)
+    }
+    else {
+        $timerDisplayLabel.Text = ('Timer: {0}:{1:00}' -f $time.Minutes, $time.Seconds)
+    }
+}
+
 function Set-LabelState {
     param([bool]$IsLocked)
     if ($IsLocked) {
@@ -161,6 +341,7 @@ function Set-LabelState {
         $toggleButton.BackColor = [System.Drawing.Color]::FromArgb(45, 150, 90)
         $toggleButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(52, 170, 101)
         $countdownLabel.Text = 'Mouse stays active. Closing the app also unlocks it.'
+        $timerDisplayLabel.Text = 'Timer: off'
     }
 }
 
@@ -196,13 +377,17 @@ function Restore-PowerSettings {
 
 function Unlock-Keyboard {
     $screenOffTimer.Stop()
+    $restTimer.Stop()
+    $script:RestSeconds = 0
     [KeyboardBlocker]::Unlock()
     $script:Locked = $false
     if ($script:EcoApplied) { Restore-PowerSettings }
+    Restore-FocusMode
     Set-LabelState -IsLocked $false
 }
 
 function Lock-Keyboard {
+    [KeyboardBlocker]::AllowMediaKeys = $mediaKeysCheck.Checked
     if (-not [KeyboardBlocker]::Lock()) {
         [System.Windows.Forms.MessageBox]::Show(
             'Windows could not start the keyboard lock. Try closing and reopening HeadDown.',
@@ -216,6 +401,21 @@ function Lock-Keyboard {
     $script:Locked = $true
     Set-LabelState -IsLocked $true
     if ($ecoCheck.Checked) { Enable-EcoMode }
+    if ($focusCheck.Checked) {
+        if (-not (Enable-FocusMode)) {
+            $countdownLabel.Text = 'Focus mode unavailable; other lock features are active.'
+        }
+    }
+
+    if ($timerCheck.Checked) {
+        $script:RestSeconds = [int]$timerMinutes.Value * 60
+        Update-RestTimerDisplay
+        $restTimer.Start()
+    }
+    else {
+        $script:RestSeconds = 0
+        $timerDisplayLabel.Text = 'Timer: off'
+    }
 
     if ($screenOffCheck.Checked) {
         $script:Countdown = 10
@@ -239,18 +439,22 @@ function Update-BatteryStatus {
 # Capture settings before the app changes anything.
 $script:OriginalPowerScheme = Get-ActivePowerScheme
 $script:OriginalBrightness = Get-InternalBrightness
+Recover-StaleFocusMode
+Capture-NotificationSetting
 
-$bg = [System.Drawing.Color]::FromArgb(24, 27, 34)
-$panelBg = [System.Drawing.Color]::FromArgb(34, 38, 47)
+$bg = [System.Drawing.Color]::FromArgb(15, 17, 23)
+$panelBg = [System.Drawing.Color]::FromArgb(25, 29, 38)
 $text = [System.Drawing.Color]::FromArgb(235, 238, 245)
-$muted = [System.Drawing.Color]::FromArgb(170, 178, 193)
-$border = [System.Drawing.Color]::FromArgb(64, 70, 84)
+$muted = [System.Drawing.Color]::FromArgb(150, 160, 180)
+$border = [System.Drawing.Color]::FromArgb(54, 61, 76)
+$accent = [System.Drawing.Color]::FromArgb(108, 99, 255)
 
+[System.Windows.Forms.Application]::EnableVisualStyles()
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'HeadDown'
-$form.Size = New-Object System.Drawing.Size(380, 520)
-$form.MinimumSize = New-Object System.Drawing.Size(380, 520)
-$form.MaximumSize = New-Object System.Drawing.Size(380, 520)
+$form.Size = New-Object System.Drawing.Size(400, 690)
+$form.MinimumSize = New-Object System.Drawing.Size(400, 690)
+$form.MaximumSize = New-Object System.Drawing.Size(400, 690)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $bg
 $form.ForeColor = $text
@@ -258,67 +462,133 @@ $form.FormBorderStyle = 'FixedSingle'
 $form.MaximizeBox = $false
 $form.AutoScaleMode = 'Dpi'
 
+$accentBar = New-Object System.Windows.Forms.Panel
+$accentBar.Location = New-Object System.Drawing.Point(0, 0)
+$accentBar.Size = New-Object System.Drawing.Size(400, 4)
+$accentBar.BackColor = $accent
+$form.Controls.Add($accentBar)
+
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Text = 'HeadDown'
-$titleLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 18)
+$titleLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 20)
 $titleLabel.ForeColor = $text
-$titleLabel.Location = New-Object System.Drawing.Point(22, 18)
+$titleLabel.Location = New-Object System.Drawing.Point(22, 20)
 $titleLabel.AutoSize = $true
 $form.Controls.Add($titleLabel)
 
 $subtitleLabel = New-Object System.Windows.Forms.Label
-$subtitleLabel.Text = 'Keyboard rest mode'
+$subtitleLabel.Text = 'Rest without accidental input'
 $subtitleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $subtitleLabel.ForeColor = $muted
-$subtitleLabel.Location = New-Object System.Drawing.Point(24, 53)
+$subtitleLabel.Location = New-Object System.Drawing.Point(24, 59)
 $subtitleLabel.AutoSize = $true
 $form.Controls.Add($subtitleLabel)
 
-$statusPanel = New-Object System.Windows.Forms.Panel
-$statusPanel.Location = New-Object System.Drawing.Point(20, 82)
-$statusPanel.Size = New-Object System.Drawing.Size(326, 142)
+$statusPanel = New-Object RoundedPanel
+$statusPanel.Radius = 18
+$statusPanel.Location = New-Object System.Drawing.Point(20, 90)
+$statusPanel.Size = New-Object System.Drawing.Size(346, 174)
 $statusPanel.BackColor = $panelBg
 $form.Controls.Add($statusPanel)
 
 $statusLabel = New-Object System.Windows.Forms.Label
 $statusLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
-$statusLabel.Location = New-Object System.Drawing.Point(14, 14)
-$statusLabel.Size = New-Object System.Drawing.Size(298, 24)
+$statusLabel.Location = New-Object System.Drawing.Point(14, 12)
+$statusLabel.Size = New-Object System.Drawing.Size(318, 24)
 $statusLabel.TextAlign = 'MiddleCenter'
 $statusPanel.Controls.Add($statusLabel)
 
-$toggleButton = New-Object System.Windows.Forms.Button
-$toggleButton.Location = New-Object System.Drawing.Point(16, 47)
-$toggleButton.Size = New-Object System.Drawing.Size(294, 54)
+$toggleButton = New-Object RoundedButton
+$toggleButton.Radius = 13
+$toggleButton.Location = New-Object System.Drawing.Point(16, 44)
+$toggleButton.Size = New-Object System.Drawing.Size(314, 54)
 $toggleButton.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
 $toggleButton.ForeColor = [System.Drawing.Color]::White
-$toggleButton.FlatStyle = 'Flat'
-$toggleButton.FlatAppearance.BorderSize = 0
 $toggleButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 $statusPanel.Controls.Add($toggleButton)
+
+$timerDisplayLabel = New-Object System.Windows.Forms.Label
+$timerDisplayLabel.Text = 'Timer: off'
+$timerDisplayLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
+$timerDisplayLabel.ForeColor = $text
+$timerDisplayLabel.Location = New-Object System.Drawing.Point(10, 105)
+$timerDisplayLabel.Size = New-Object System.Drawing.Size(326, 24)
+$timerDisplayLabel.TextAlign = 'MiddleCenter'
+$statusPanel.Controls.Add($timerDisplayLabel)
 
 $countdownLabel = New-Object System.Windows.Forms.Label
 $countdownLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8.5)
 $countdownLabel.ForeColor = $muted
-$countdownLabel.Location = New-Object System.Drawing.Point(10, 109)
-$countdownLabel.Size = New-Object System.Drawing.Size(306, 23)
+$countdownLabel.Location = New-Object System.Drawing.Point(10, 135)
+$countdownLabel.Size = New-Object System.Drawing.Size(326, 23)
 $countdownLabel.TextAlign = 'MiddleCenter'
 $statusPanel.Controls.Add($countdownLabel)
 
 $batteryLabel = New-Object System.Windows.Forms.Label
 $batteryLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
 $batteryLabel.ForeColor = $text
-$batteryLabel.Location = New-Object System.Drawing.Point(24, 242)
-$batteryLabel.Size = New-Object System.Drawing.Size(320, 25)
+$batteryLabel.Location = New-Object System.Drawing.Point(24, 279)
+$batteryLabel.Size = New-Object System.Drawing.Size(340, 25)
 $form.Controls.Add($batteryLabel)
+
+$timerCheck = New-Object System.Windows.Forms.CheckBox
+$timerCheck.Text = 'Use silent heads-down timer'
+$timerCheck.Checked = $true
+$timerCheck.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 9.5)
+$timerCheck.ForeColor = $text
+$timerCheck.FlatStyle = 'Flat'
+$timerCheck.Location = New-Object System.Drawing.Point(24, 312)
+$timerCheck.Size = New-Object System.Drawing.Size(245, 24)
+$form.Controls.Add($timerCheck)
+
+$timerMinutes = New-Object System.Windows.Forms.NumericUpDown
+$timerMinutes.Minimum = 1
+$timerMinutes.Maximum = 180
+$timerMinutes.Value = 20
+$timerMinutes.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
+$timerMinutes.ForeColor = $text
+$timerMinutes.BackColor = $panelBg
+$timerMinutes.BorderStyle = 'FixedSingle'
+$timerMinutes.Location = New-Object System.Drawing.Point(44, 342)
+$timerMinutes.Size = New-Object System.Drawing.Size(72, 26)
+$form.Controls.Add($timerMinutes)
+
+$minutesLabel = New-Object System.Windows.Forms.Label
+$minutesLabel.Text = 'minutes'
+$minutesLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+$minutesLabel.ForeColor = $muted
+$minutesLabel.Location = New-Object System.Drawing.Point(124, 345)
+$minutesLabel.AutoSize = $true
+$form.Controls.Add($minutesLabel)
+
+$focusCheck = New-Object System.Windows.Forms.CheckBox
+$focusCheck.Text = 'Focus mode - silence notifications while locked'
+$focusCheck.Checked = $true
+$focusCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
+$focusCheck.ForeColor = $text
+$focusCheck.FlatStyle = 'Flat'
+$focusCheck.Location = New-Object System.Drawing.Point(24, 378)
+$focusCheck.Size = New-Object System.Drawing.Size(345, 24)
+$form.Controls.Add($focusCheck)
+
+$mediaKeysCheck = New-Object System.Windows.Forms.CheckBox
+$mediaKeysCheck.Text = 'Keep volume and playback media keys working'
+$mediaKeysCheck.Checked = $true
+$mediaKeysCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
+$mediaKeysCheck.ForeColor = $text
+$mediaKeysCheck.FlatStyle = 'Flat'
+$mediaKeysCheck.Location = New-Object System.Drawing.Point(24, 408)
+$mediaKeysCheck.Size = New-Object System.Drawing.Size(345, 24)
+$form.Controls.Add($mediaKeysCheck)
 
 $ecoCheck = New-Object System.Windows.Forms.CheckBox
 $ecoCheck.Text = 'Use eco mode while keyboard is locked'
 $ecoCheck.Checked = $true
 $ecoCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $ecoCheck.ForeColor = $text
-$ecoCheck.Location = New-Object System.Drawing.Point(24, 276)
-$ecoCheck.Size = New-Object System.Drawing.Size(320, 24)
+$ecoCheck.FlatStyle = 'Flat'
+$ecoCheck.Location = New-Object System.Drawing.Point(24, 438)
+$ecoCheck.Size = New-Object System.Drawing.Size(340, 24)
 $form.Controls.Add($ecoCheck)
 
 $screenOffCheck = New-Object System.Windows.Forms.CheckBox
@@ -326,44 +596,45 @@ $screenOffCheck.Text = 'Turn display off 10 seconds after locking'
 $screenOffCheck.Checked = $true
 $screenOffCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $screenOffCheck.ForeColor = $text
-$screenOffCheck.Location = New-Object System.Drawing.Point(24, 306)
-$screenOffCheck.Size = New-Object System.Drawing.Size(330, 24)
+$screenOffCheck.FlatStyle = 'Flat'
+$screenOffCheck.Location = New-Object System.Drawing.Point(24, 468)
+$screenOffCheck.Size = New-Object System.Drawing.Size(340, 24)
 $form.Controls.Add($screenOffCheck)
 
 $powerStateLabel = New-Object System.Windows.Forms.Label
 $powerStateLabel.Text = 'Eco mode: OFF'
 $powerStateLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8.5)
 $powerStateLabel.ForeColor = $muted
-$powerStateLabel.Location = New-Object System.Drawing.Point(24, 339)
-$powerStateLabel.Size = New-Object System.Drawing.Size(326, 22)
+$powerStateLabel.Location = New-Object System.Drawing.Point(24, 500)
+$powerStateLabel.Size = New-Object System.Drawing.Size(346, 22)
 $form.Controls.Add($powerStateLabel)
 
 function New-PowerButton {
     param([string]$Caption, [int]$X, [int]$Width)
-    $button = New-Object System.Windows.Forms.Button
+    $button = New-Object RoundedButton
+    $button.Radius = 10
     $button.Text = $Caption
-    $button.Location = New-Object System.Drawing.Point($X, 373)
+    $button.Location = New-Object System.Drawing.Point($X, 532)
     $button.Size = New-Object System.Drawing.Size($Width, 40)
     $button.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 8.5)
     $button.ForeColor = $text
     $button.BackColor = $panelBg
-    $button.FlatStyle = 'Flat'
-    $button.FlatAppearance.BorderColor = $border
+    $button.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(39, 45, 58)
     $button.Cursor = [System.Windows.Forms.Cursors]::Hand
     $form.Controls.Add($button)
     return $button
 }
 
-$dimButton = New-PowerButton -Caption 'DIM TO 10%' -X 20 -Width 101
-$screenButton = New-PowerButton -Caption 'SCREEN OFF' -X 130 -Width 105
-$restoreButton = New-PowerButton -Caption 'RESTORE' -X 244 -Width 102
+$dimButton = New-PowerButton -Caption 'DIM TO 10%' -X 20 -Width 108
+$screenButton = New-PowerButton -Caption 'SCREEN OFF' -X 138 -Width 108
+$restoreButton = New-PowerButton -Caption 'RESTORE' -X 256 -Width 110
 
 $footerLabel = New-Object System.Windows.Forms.Label
 $footerLabel.Text = 'The mouse always works. Ctrl+Alt+Delete is kept by Windows.'
 $footerLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8)
 $footerLabel.ForeColor = $muted
-$footerLabel.Location = New-Object System.Drawing.Point(20, 438)
-$footerLabel.Size = New-Object System.Drawing.Size(330, 34)
+$footerLabel.Location = New-Object System.Drawing.Point(20, 590)
+$footerLabel.Size = New-Object System.Drawing.Size(346, 34)
 $footerLabel.TextAlign = 'MiddleCenter'
 $form.Controls.Add($footerLabel)
 
@@ -381,9 +652,41 @@ $screenOffTimer.Add_Tick({
     }
 })
 
+$restTimer = New-Object System.Windows.Forms.Timer
+$restTimer.Interval = 1000
+$restTimer.Add_Tick({
+    if (-not $script:Locked) {
+        $restTimer.Stop()
+        return
+    }
+
+    $script:RestSeconds--
+    if ($script:RestSeconds -le 0) {
+        $restTimer.Stop()
+        $screenOffTimer.Stop()
+        $script:RestSeconds = 0
+        [MonitorPower]::TurnOn()
+        if ($script:EcoApplied) { Restore-PowerSettings }
+        Restore-FocusMode
+        $statusLabel.Text = 'HEADS-DOWN TIMER FINISHED'
+        $statusLabel.ForeColor = [System.Drawing.Color]::FromArgb(255, 193, 92)
+        $timerDisplayLabel.Text = 'Timer complete - keyboard is still locked'
+        $countdownLabel.Text = 'Click UNLOCK KEYBOARD when you are ready.'
+        $form.WindowState = 'Normal'
+        $form.Activate()
+    }
+    else {
+        Update-RestTimerDisplay
+    }
+})
+
 $batteryTimer = New-Object System.Windows.Forms.Timer
 $batteryTimer.Interval = 15000
 $batteryTimer.Add_Tick({ Update-BatteryStatus })
+
+$timerCheck.Add_CheckedChanged({
+    $timerMinutes.Enabled = $timerCheck.Checked
+})
 
 $toggleButton.Add_Click({
     if ($script:Locked) { Unlock-Keyboard } else { Lock-Keyboard }
@@ -406,13 +709,14 @@ $restoreButton.Add_Click({ Restore-PowerSettings })
 
 $form.Add_FormClosing({
     $screenOffTimer.Stop()
+    $restTimer.Stop()
     $batteryTimer.Stop()
     [KeyboardBlocker]::Unlock()
     if ($script:EcoApplied) { Restore-PowerSettings }
+    Restore-FocusMode
 })
 
 Set-LabelState -IsLocked $false
 Update-BatteryStatus
 $batteryTimer.Start()
-[System.Windows.Forms.Application]::EnableVisualStyles()
 [System.Windows.Forms.Application]::Run($form)

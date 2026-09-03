@@ -4,11 +4,16 @@ HEADDOWN - KEYBOARD REST MODE FOR WINDOWS 10/11
 QUICK START
 1. Extract the HeadDown folder from the ZIP.
 2. Double-click "Start HeadDown.bat".
-3. Click LOCK KEYBOARD, then use the large mouse button to unlock it.
+3. Choose a silent timer length or turn the timer off.
+4. Click LOCK KEYBOARD, then use the large mouse button to unlock it.
 
 WHAT IT DOES
 - Blocks normal keyboard input everywhere while locked.
 - Keeps the mouse working so you can unlock it safely.
+- Includes a silent 1-180 minute heads-down timer.
+- Wakes the display when the timer ends but keeps the keyboard locked.
+- Can silence normal Windows notifications while locked.
+- Can keep volume and playback media keys working while typing stays blocked.
 - Automatically releases the keyboard if the app closes or crashes.
 - Can switch to Windows Power Saver and dim the built-in display to 10%.
 - Can turn the display off after 10 seconds. Move the mouse to wake it.
@@ -27,9 +32,9 @@ IMPORTANT
   power-plan controls will still work.
 - This is a comfort tool, not a security lock. Use Win+L before HeadDown if you
   need to protect your files or account.
+- Focus mode may not suppress critical system or priority notifications.
 - No administrator access, installation, internet, or background service is used.
 
 If Windows blocks the script after download:
 Right-click HeadDown.ps1, choose Properties, check Unblock, click Apply, and
 then double-click Start HeadDown.bat again.
-
