@@ -274,7 +274,7 @@ namespace HeadDown
                 TimerMinutesTextBox.IsEnabled = TimerEnabledCheckBox.IsChecked == true;
         }
 
-        private static void TimerMinutesTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        private void TimerMinutesTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             e.Handled = !Regex.IsMatch(e.Text, "^[0-9]+$");
         }
@@ -294,7 +294,7 @@ namespace HeadDown
             }
         }
 
-        private static void ScreenOffButton_Click(object sender, RoutedEventArgs e)
+        private void ScreenOffButton_Click(object sender, RoutedEventArgs e)
         {
             MonitorPower.TurnOff();
         }
