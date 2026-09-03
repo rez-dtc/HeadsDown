@@ -10,6 +10,7 @@ QUICK START
 WHAT IT DOES
 - Blocks normal keyboard input everywhere while locked.
 - Keeps the mouse working so you can unlock it safely.
+- Uses a compact, resizable window with scrolling on smaller displays.
 - Includes a silent 1-180 minute heads-down timer.
 - Wakes the display when the timer ends but keeps the keyboard locked.
 - Can silence normal Windows notifications while locked.
@@ -34,6 +35,12 @@ IMPORTANT
   need to protect your files or account.
 - Focus mode may not suppress critical system or priority notifications.
 - No administrator access, installation, internet, or background service is used.
+
+DISPLAY SIZE
+- Drag any edge or corner to resize the app.
+- If the window is made shorter, scroll down to reach the remaining controls.
+- Maximize and restore work normally.
+- If the interface cannot open, HeadDown displays the actual startup error.
 
 If Windows blocks the script after download:
 Right-click HeadDown.ps1, choose Properties, check Unblock, click Apply, and

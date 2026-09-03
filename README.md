@@ -14,6 +14,7 @@ The mouse stays active the entire time. Unlocking is always one click away.
 ## Features
 
 - **Mouse-only lock and unlock** with one large button
+- **Compact, resizable interface** that adapts to smaller screens and Windows display scaling
 - **Global keyboard blocking** while HeadDown is locked
 - **Automatic recovery** when the app closes or stops running
 - **Always-on-top status window** while the keyboard is locked
@@ -35,6 +36,8 @@ The mouse stays active the entire time. Unlocking is always one click away.
 4. Choose a timer length or turn the silent timer off.
 5. Click **LOCK KEYBOARD**.
 6. Click **UNLOCK KEYBOARD** with the mouse when you are finished.
+
+The window can be resized normally. If it is made shorter than the controls, a vertical scrollbar appears so every option remains reachable.
 
 If Windows blocks the downloaded script, right-click `HeadDown.ps1`, select **Properties**, check **Unblock**, select **Apply**, and launch it again.
 
@@ -75,6 +78,12 @@ The hook exists only while HeadDown is running. The program explicitly releases 
 - Dedicated hardware buttons and some vendor-specific keys may not behave like standard keyboard input.
 - HeadDown is a comfort tool, not a security lock. Use `Win+L` when you need to protect your account or files.
 - The current package targets Windows PowerShell 5.1, included with Windows 10 and Windows 11.
+
+## Display troubleshooting
+
+If the interface looks oversized, resize it from any edge or corner. HeadDown now starts at a compact `360 x 510` client size, supports maximize and restore, and provides scrolling on short displays. Windows display scaling is supported through font-based scaling.
+
+If HeadDown cannot build or open its interface, the launcher now shows the underlying error in a message box instead of closing silently. Include that message when reporting a problem.
 
 ## Project files
 
