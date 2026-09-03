@@ -2,6 +2,8 @@
 
 HeadDown is a lightweight, mouse-controlled keyboard rest mode for Windows 10 and Windows 11. It temporarily blocks normal keyboard input so you can safely rest your head or place something on the keyboard without filling a document with random keys, opening shortcuts, or triggering commands.
 
+**Current build: v1.1.1**
+
 The mouse stays active the entire time. Unlocking is always one click away.
 
 ## Interface preview
@@ -84,6 +86,8 @@ The hook exists only while HeadDown is running. The program explicitly releases 
 If the interface looks oversized, resize it from any edge or corner. HeadDown now starts at a compact `360 x 510` client size, supports maximize and restore, and provides scrolling on short displays. Windows display scaling is supported through font-based scaling.
 
 If HeadDown cannot build or open its interface, the launcher now shows the underlying error in a message box instead of closing silently. Include that message when reporting a problem.
+
+Version 1.1.1 removes the custom compiled UI controls that caused the `Cannot add type. Compilation errors occurred.` startup failure on some Windows PowerShell 5.1 systems. The native keyboard component is now independent of the interface assemblies.
 
 ## Project files
 

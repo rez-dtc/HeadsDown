@@ -19,69 +19,12 @@ trap {
     exit 1
 }
 
+# Keep the native helper independent of Windows Forms/Drawing references so it
+# compiles reliably with the older C# compiler included in Windows PowerShell 5.1.
 Add-Type -TypeDefinition @"
 using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-
-public class RoundedPanel : Panel
-{
-    public int Radius { get; set; }
-
-    public RoundedPanel()
-    {
-        Radius = 18;
-        Resize += delegate { UpdateRegion(); };
-    }
-
-    private void UpdateRegion()
-    {
-        if (Width < 2 || Height < 2) return;
-        int diameter = Math.Max(2, Radius * 2);
-        GraphicsPath path = new GraphicsPath();
-        path.AddArc(0, 0, diameter, diameter, 180, 90);
-        path.AddArc(Width - diameter, 0, diameter, diameter, 270, 90);
-        path.AddArc(Width - diameter, Height - diameter, diameter, diameter, 0, 90);
-        path.AddArc(0, Height - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();
-        Region previous = Region;
-        Region = new Region(path);
-        if (previous != null) previous.Dispose();
-        path.Dispose();
-    }
-}
-
-public class RoundedButton : Button
-{
-    public int Radius { get; set; }
-
-    public RoundedButton()
-    {
-        Radius = 12;
-        FlatStyle = FlatStyle.Flat;
-        FlatAppearance.BorderSize = 0;
-        Resize += delegate { UpdateRegion(); };
-    }
-
-    private void UpdateRegion()
-    {
-        if (Width < 2 || Height < 2) return;
-        int diameter = Math.Max(2, Radius * 2);
-        GraphicsPath path = new GraphicsPath();
-        path.AddArc(0, 0, diameter, diameter, 180, 90);
-        path.AddArc(Width - diameter, 0, diameter, diameter, 270, 90);
-        path.AddArc(Width - diameter, Height - diameter, diameter, diameter, 0, 90);
-        path.AddArc(0, Height - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();
-        Region previous = Region;
-        Region = new Region(path);
-        if (previous != null) previous.Dispose();
-        path.Dispose();
-    }
-}
 
 public static class KeyboardBlocker
 {
@@ -195,7 +138,7 @@ public static class SettingsBroadcast
             IntPtr.Zero, IntPtr.Zero, SMTO_ABORTIFHUNG, 1000, out result);
     }
 }
-"@
+"@ -ErrorAction Stop
 
 $script:PowerSaverGuid = 'a1841308-3541-4fab-bc81-f71556f20b4a'
 $script:OriginalPowerScheme = $null
@@ -498,11 +441,11 @@ $subtitleLabel.Location = New-Object System.Drawing.Point(20, 48)
 $subtitleLabel.AutoSize = $true
 $form.Controls.Add($subtitleLabel)
 
-$statusPanel = New-Object RoundedPanel
-$statusPanel.Radius = 16
+$statusPanel = New-Object System.Windows.Forms.Panel
 $statusPanel.Location = New-Object System.Drawing.Point(18, 72)
 $statusPanel.Size = New-Object System.Drawing.Size(324, 150)
 $statusPanel.BackColor = $panelBg
+$statusPanel.BorderStyle = 'FixedSingle'
 $statusPanel.Anchor = 'Top, Left, Right'
 $form.Controls.Add($statusPanel)
 
@@ -514,12 +457,13 @@ $statusLabel.TextAlign = 'MiddleCenter'
 $statusLabel.Anchor = 'Top, Left, Right'
 $statusPanel.Controls.Add($statusLabel)
 
-$toggleButton = New-Object RoundedButton
-$toggleButton.Radius = 13
+$toggleButton = New-Object System.Windows.Forms.Button
 $toggleButton.Location = New-Object System.Drawing.Point(14, 34)
 $toggleButton.Size = New-Object System.Drawing.Size(296, 48)
 $toggleButton.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
 $toggleButton.ForeColor = [System.Drawing.Color]::White
+$toggleButton.FlatStyle = 'Flat'
+$toggleButton.FlatAppearance.BorderSize = 0
 $toggleButton.Cursor = [System.Windows.Forms.Cursors]::Hand
 $toggleButton.Anchor = 'Top, Left, Right'
 $statusPanel.Controls.Add($toggleButton)
@@ -638,12 +582,14 @@ $form.Controls.Add($powerStateLabel)
 
 function New-PowerButton {
     param([string]$Caption)
-    $button = New-Object RoundedButton
-    $button.Radius = 10
+    $button = New-Object System.Windows.Forms.Button
     $button.Text = $Caption
     $button.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 8.5)
     $button.ForeColor = $text
     $button.BackColor = $panelBg
+    $button.FlatStyle = 'Flat'
+    $button.FlatAppearance.BorderSize = 1
+    $button.FlatAppearance.BorderColor = $border
     $button.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(39, 45, 58)
     $button.Cursor = [System.Windows.Forms.Cursors]::Hand
     $button.Dock = 'Fill'

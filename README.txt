@@ -1,5 +1,6 @@
 HEADDOWN - KEYBOARD REST MODE FOR WINDOWS 10/11
 ================================================
+VERSION 1.1.1
 
 QUICK START
 1. Extract the HeadDown folder from the ZIP.
@@ -41,6 +42,7 @@ DISPLAY SIZE
 - If the window is made shorter, scroll down to reach the remaining controls.
 - Maximize and restore work normally.
 - If the interface cannot open, HeadDown displays the actual startup error.
+- Version 1.1.1 fixes the "Cannot add type" error from the previous UI build.
 
 If Windows blocks the script after download:
 Right-click HeadDown.ps1, choose Properties, check Unblock, click Apply, and
