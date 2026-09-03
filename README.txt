@@ -1,49 +1,41 @@
-HEADDOWN - KEYBOARD REST MODE FOR WINDOWS 10/11
-================================================
-VERSION 1.2
+HEADDOWN v1.2 - KEYBOARD REST MODE FOR WINDOWS
+==============================================
 
 QUICK START
-1. Extract the HeadDown folder from the ZIP.
-2. Double-click "Start HeadDown.bat".
-3. Choose a silent timer length or turn the timer off.
-4. Click LOCK KEYBOARD, then use the large mouse button to unlock it.
+1. Double-click HeadDown.exe.
+2. Choose the silent timer and session options you want.
+3. Click LOCK KEYBOARD.
+4. Click UNLOCK KEYBOARD with the mouse when you are finished.
 
 WHAT IT DOES
 - Blocks normal keyboard input everywhere while locked.
-- Keeps the mouse working so you can unlock it safely.
-- Uses a compact, resizable window with scrolling on smaller displays.
+- Keeps the mouse working so you can always unlock safely.
+- Uses a compact, modern, resizable WPF interface.
 - Includes a silent 1-180 minute heads-down timer.
-- Wakes the display when the timer ends but keeps the keyboard locked.
 - Can silence normal Windows notifications while locked.
-- Can keep volume and playback media keys working while typing stays blocked.
-- Automatically releases the keyboard if the app closes or crashes.
-- Can switch to Windows Power Saver and dim the built-in display to 10%.
-- Can turn the display off after 10 seconds. Move the mouse to wake it.
-- Restores the original power plan and brightness when you unlock or close it.
+- Can keep volume and playback media keys working.
+- Can use Windows Power Saver and dim a supported built-in display.
+- Can turn the display off after 10 seconds.
+- Restores changed settings after unlocking or closing.
 
-BATTERY BUTTONS
-- DIM TO 10%: Dims a laptop's built-in display.
-- SCREEN OFF: Turns the display off immediately; move the mouse to wake it.
-- RESTORE: Restores the power plan and brightness from when HeadDown opened.
+POWER BUTTONS
+- DIM 10%: Dims a supported built-in laptop display.
+- SCREEN OFF: Turns the display off; move the mouse to wake it.
+- RESTORE: Restores the original power plan and brightness.
 
 IMPORTANT
-- Keep a working mouse connected before locking the keyboard.
-- Ctrl+Alt+Delete is handled directly by Windows and cannot be blocked by a
-  normal app. If you open that screen, click Cancel with the mouse.
-- External monitors often cannot be dimmed through Windows. SCREEN OFF and the
-  power-plan controls will still work.
-- This is a comfort tool, not a security lock. Use Win+L before HeadDown if you
-  need to protect your files or account.
-- Focus mode may not suppress critical system or priority notifications.
-- No administrator access, installation, internet, or background service is used.
+- Keep a working mouse or trackpad available before locking.
+- Ctrl+Alt+Delete is handled directly by Windows and cannot be blocked.
+- External monitors may not support Windows brightness control.
+- HeadDown is a comfort tool, not a security lock. Use Win+L to protect
+  your Windows account.
+- HeadDown does not record or transmit keystrokes.
+- The app has no network connection, analytics, updater, or background service.
 
-DISPLAY SIZE
-- Drag any edge or corner to resize the app.
-- If the window is made shorter, scroll down to reach the remaining controls.
-- Maximize and restore work normally.
-- If the interface cannot open, HeadDown displays the actual startup error.
-- Version 1.2 fixes the "Cannot add type" error and adds the compact dashboard.
+WINDOWS WARNING
+HeadDown is not code-signed, so Microsoft Defender SmartScreen may warn about
+the downloaded EXE. Confirm that it came from the official GitHub repository,
+select More info, and choose Run anyway.
 
-If Windows blocks the script after download:
-Right-click HeadDown.ps1, choose Properties, check Unblock, click Apply, and
-then double-click Start HeadDown.bat again.
+The application uses the .NET Framework 4.8 Windows desktop runtime included
+with current Windows 10 and Windows 11 systems.

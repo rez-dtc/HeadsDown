@@ -1,118 +1,110 @@
 # HeadDown
 
-HeadDown is a lightweight, mouse-controlled keyboard rest mode for Windows 10 and Windows 11. It temporarily blocks normal keyboard input so you can safely rest your head or place something on the keyboard without filling a document with random keys, opening shortcuts, or triggering commands.
+HeadDown is a compact Windows desktop app that temporarily blocks normal keyboard input while keeping the mouse available. It is designed for resting your head—or anything else—on the keyboard without sending random keystrokes or shortcuts.
 
-**Current build: v1.2**
+**Current build: v1.2 WPF**
 
-The mouse stays active the entire time. Unlocking is always one click away.
-
-## Interface preview
+## The real interface
 
 <p align="center">
-  <img src="docs/ready-state.svg" width="46%" alt="HeadDown ready-state interface preview">
-  <img src="docs/locked-timer.svg" width="46%" alt="HeadDown locked with a silent timer running">
+  <img src="docs/actual-ui.png" width="420" alt="Actual HeadDown v1.2 WPF interface rendered by the Windows build">
 </p>
+
+The image above is rendered directly from the compiled WPF app during its Windows build. It is not a separate design mockup.
 
 ## Features
 
-- **Mouse-only lock and unlock** with one large button
-- **New compact dashboard** with separate status, session-options, and battery cards
-- **Resizable interface** that adapts to smaller screens and Windows display scaling
-- **Global keyboard blocking** while HeadDown is locked
-- **Automatic recovery** when the app closes or stops running
-- **Always-on-top status window** while the keyboard is locked
-- **Silent heads-down timer** from 1 to 180 minutes
-- **Focus mode** that silences normal Windows toast notifications while locked
-- **Optional media-key passthrough** for volume, play/pause, next, previous, and stop
-- **Battery percentage and charging status** display
-- **Eco mode** that switches to Windows Power Saver and dims the built-in display
-- **Automatic screen-off timer** 10 seconds after locking
-- **Screen Off**, **Dim to 10%**, and **Restore** power-control buttons
-- **Original settings restoration** after unlocking or closing the app
-- **No installation, administrator access, account, or internet connection required**
-- **Windows PowerShell 5.1 smoke test** that compiles the native component and constructs the complete interface on every UI change
+- Polished WPF interface matching the project preview
+- Rounded status, session-options, and battery cards
+- Compact default window that remains fully resizable
+- One-click mouse-controlled keyboard lock and unlock
+- Silent heads-down timer from 1 to 180 minutes
+- Optional Windows notification silencing while locked
+- Optional volume and playback media-key passthrough
+- Battery percentage and charging-state display
+- Eco mode using Windows Power Saver and supported display brightness
+- Screen-off countdown and instant screen-off control
+- Automatic restoration of power, brightness, and notification settings
+- No installer, administrator access, account, analytics, or network connection
 
-## Quick start
+## Download and run
 
-1. Download `HeadDown-Windows.zip` from this repository and extract it.
-2. Make sure a working mouse or trackpad is available.
-3. Double-click `Start HeadDown.bat`.
-4. Choose a timer length or turn the silent timer off.
+1. [Download HeadDown-Windows.zip](HeadDown-Windows.zip).
+2. Extract the ZIP into a new folder.
+3. Double-click **HeadDown.exe**.
+4. Choose your session options.
 5. Click **LOCK KEYBOARD**.
-6. Click **UNLOCK KEYBOARD** with the mouse when you are finished.
+6. Click **UNLOCK KEYBOARD** with the mouse when finished.
 
-The window can be resized normally. If it is made shorter than the controls, a vertical scrollbar appears so every option remains reachable.
+The EXE targets the built-in .NET Framework 4.8 Windows desktop runtime. No separate setup program is required on current Windows 10 and Windows 11 systems.
 
-If Windows blocks the downloaded script, right-click `HeadDown.ps1`, select **Properties**, check **Unblock**, select **Apply**, and launch it again.
+If Microsoft Defender SmartScreen appears, confirm that the file came from this repository, select **More info**, and choose **Run anyway**. HeadDown is not code-signed.
+
+## How the lock behaves
+
+HeadDown installs a standard Windows low-level keyboard hook only while lock mode is active. Normal typing and shortcuts are discarded immediately; keystrokes are never saved or transmitted. The mouse remains active.
+
+When media keys are enabled, volume mute/down/up and playback previous/next/stop/play-pause continue working. **Ctrl+Alt+Delete** is handled directly by Windows and cannot be intercepted by a normal desktop application.
+
+Closing the app always releases its keyboard hook. Windows also removes the hook automatically if the process ends unexpectedly.
 
 ## Silent timer
 
-The timer starts when the keyboard is locked and never plays an alarm. When it reaches zero, HeadDown wakes the display, restores Eco and Focus settings, and brings the window forward. The keyboard stays locked until **UNLOCK KEYBOARD** is clicked, preventing accidental input if you are still resting on it.
-
-The timer accepts any whole number from 1 to 180 minutes.
-
-## Focus and media keys
-
-Focus mode temporarily disables normal Windows toast notifications while the keyboard is locked and restores the previous notification setting when the timer finishes, the keyboard is unlocked, or the app closes. A recovery marker lets HeadDown repair the setting the next time it opens if the previous session ended unexpectedly.
-
-When media-key passthrough is enabled, volume mute/down/up and playback previous/next/stop/play-pause continue working. All ordinary typing and shortcut keys remain blocked.
+The timer never plays an alarm. When it finishes, HeadDown wakes the display, restores Eco and notification settings, and brings the window forward. The keyboard remains locked until **UNLOCK KEYBOARD** is clicked.
 
 ## Battery controls
 
-| Control | What it does |
+| Control | Behavior |
 | --- | --- |
-| Use eco mode while locked | Activates the Windows Power Saver plan and sets supported built-in displays to 10% brightness. |
-| Turn display off after locking | Turns the display off 10 seconds after the keyboard is locked. Moving the mouse wakes it. |
-| Dim to 10% | Immediately dims a supported built-in laptop display. |
-| Screen Off | Immediately turns the display off without putting the computer to sleep. |
-| Restore | Restores the power plan and brightness that were active when HeadDown started. |
+| Use eco mode | Activates Windows Power Saver and sets supported built-in displays to 10% brightness while locked. |
+| Screen off in 10 sec | Turns the display off after locking; mouse movement wakes it. |
+| DIM 10% | Immediately dims a supported built-in laptop display. |
+| SCREEN OFF | Immediately turns the display off without putting Windows to sleep. |
+| RESTORE | Restores the power plan and brightness captured when HeadDown opened. |
 
-External monitors may not support Windows' built-in brightness interface. The keyboard lock, power-plan control, and Screen Off button still work when brightness control is unavailable.
+External monitors may not expose brightness control through Windows. Keyboard locking, Power Saver, and screen-off control still work when brightness adjustment is unavailable.
 
-## How it works
+## Verified Windows build
 
-HeadDown uses a Windows low-level keyboard hook (`WH_KEYBOARD_LL`) to intercept normal keyboard messages while lock mode is active. It does **not** disable or uninstall the keyboard device or modify its driver.
+Every source change runs the repository's Windows workflow. It:
 
-The hook exists only while HeadDown is running. The program explicitly releases it when you unlock or exit, and Windows removes it automatically if the process ends unexpectedly. Power controls use Windows' built-in `powercfg`, monitor-power message, and WMI brightness interfaces.
+1. Compiles the WPF project.
+2. Constructs the actual application window.
+3. Renders the interface image shown above.
+4. Packages the tested EXE.
+5. Publishes **dist/HeadDown.exe** and **HeadDown-Windows.zip**.
 
-## Safety and limitations
+You can inspect the results on the repository's [Actions page](../../actions).
 
-- Have a working mouse or trackpad available before locking.
-- `Ctrl+Alt+Delete` is handled directly by Windows and cannot be intercepted by a normal desktop program. If it opens, click **Cancel** with the mouse.
-- Dedicated hardware buttons and some vendor-specific keys may not behave like standard keyboard input.
-- HeadDown is a comfort tool, not a security lock. Use `Win+L` when you need to protect your account or files.
-- The current package targets Windows PowerShell 5.1, included with Windows 10 and Windows 11.
+## Build it yourself
 
-## Display troubleshooting
+Requirements:
 
-If the interface looks oversized, resize it from any edge or corner. HeadDown now starts at a compact `360 x 510` client size, supports maximize and restore, and provides scrolling on short displays. Windows display scaling is supported through font-based scaling.
+- Windows 10 or Windows 11
+- Visual Studio 2022 Build Tools with the .NET desktop build tools
+- .NET Framework 4.8 targeting pack
 
-If HeadDown cannot build or open its interface, the launcher now shows the underlying error in a message box instead of closing silently. Include that message when reporting a problem.
+    msbuild src\HeadDown\HeadDown.csproj /restore /t:Build /p:Configuration=Release
 
-Version 1.2 removes the custom compiled UI controls that caused the `Cannot add type. Compilation errors occurred.` startup failure on some Windows PowerShell 5.1 systems. The interface now uses reliable native controls and has been rebuilt as a visibly different compact dashboard. Hover over a shortened option for its complete description.
+The compiled application is written to:
 
-## Project files
+    src\HeadDown\bin\Release\net48\HeadDown.exe
 
-```text
-HeadDown.ps1          Main Windows Forms application and keyboard hook
-Start HeadDown.bat    Double-click launcher
-README.txt            Offline instructions included with the download
-README.md             GitHub project documentation
-LICENSE               MIT license
-HeadDown-Windows.zip   Ready-to-run Windows download
-docs/*.svg             Ready and locked interface previews
-.github/workflows/*    Automated Windows PowerShell 5.1 UI smoke test
-```
+## Project layout
 
-## Run from PowerShell
+    src/HeadDown/                 WPF application source
+    dist/HeadDown.exe             Latest workflow-built executable
+    HeadDown-Windows.zip          Latest tested download package
+    docs/actual-ui.png            Interface rendered from the real app
+    HeadDown.ps1                  Legacy PowerShell fallback
+    Start HeadDown.bat            Legacy PowerShell launcher
+    README.txt                    Offline package instructions
+    LICENSE                       MIT license
+    .github/workflows/            Windows build and interface test
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\HeadDown.ps1
-```
+## Security and privacy
 
-## Privacy
-
-HeadDown does not record, save, or transmit keystrokes. When locked, keyboard messages are discarded immediately. The app contains no networking, analytics, automatic updates, or background service.
+HeadDown does not record, log, save, or transmit keystrokes. It has no networking code, updater, analytics, advertising, background service, or driver. It is a comfort tool—not a security lock. Use **Win+L** when you need to protect your Windows account.
 
 ## License
 

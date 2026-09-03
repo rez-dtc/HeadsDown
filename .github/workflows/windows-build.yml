@@ -1,0 +1,75 @@
+name: Windows EXE build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - README.txt
+      - LICENSE
+      - .github/workflows/windows-build.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Add MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore and build HeadDown
+        shell: powershell
+        run: msbuild src\HeadDown\HeadDown.csproj /restore /t:Build /p:Configuration=Release
+
+      - name: Construct the real WPF window
+        shell: cmd
+        run: src\HeadDown\bin\Release\net48\HeadDown.exe --smoke-test
+
+      - name: Render the real interface preview
+        shell: powershell
+        run: |
+          $previewPath = Join-Path $PWD 'docs\actual-ui.png'
+          $process = Start-Process -FilePath 'src\HeadDown\bin\Release\net48\HeadDown.exe' -ArgumentList '--render-preview', $previewPath -Wait -PassThru
+          if ($process.ExitCode -ne 0 -or -not (Test-Path $previewPath)) {
+            throw 'HeadDown did not render the interface preview.'
+          }
+
+      - name: Create downloadable package
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item src\HeadDown\bin\Release\net48\HeadDown.exe dist\HeadDown.exe -Force
+
+          $packagePath = Join-Path $env:RUNNER_TEMP 'HeadDown'
+          New-Item -ItemType Directory -Force -Path $packagePath | Out-Null
+          Copy-Item dist\HeadDown.exe $packagePath
+          Copy-Item README.txt $packagePath
+          Copy-Item LICENSE $packagePath
+          Compress-Archive -Path "$packagePath\*" -DestinationPath HeadDown-Windows.zip -Force
+
+      - name: Upload tested package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeadDown-Windows
+          path: HeadDown-Windows.zip
+          if-no-files-found: error
+
+      - name: Publish tested EXE and ZIP
+        shell: powershell
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist\HeadDown.exe HeadDown-Windows.zip docs\actual-ui.png
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m 'Build tested HeadDown v1.2 executable'
+            git push
+          }
