@@ -1,0 +1,23 @@
+name: Windows smoke test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - HeadDown.ps1
+      - Start HeadDown.bat
+      - .github/workflows/windows-smoke-test.yml
+  workflow_dispatch:
+
+jobs:
+  powershell-51:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Compile native component and construct UI
+        shell: cmd
+        run: powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File ".\HeadDown.ps1" -SmokeTest

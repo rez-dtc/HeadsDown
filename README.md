@@ -2,7 +2,7 @@
 
 HeadDown is a lightweight, mouse-controlled keyboard rest mode for Windows 10 and Windows 11. It temporarily blocks normal keyboard input so you can safely rest your head or place something on the keyboard without filling a document with random keys, opening shortcuts, or triggering commands.
 
-**Current build: v1.1.1**
+**Current build: v1.2**
 
 The mouse stays active the entire time. Unlocking is always one click away.
 
@@ -16,7 +16,8 @@ The mouse stays active the entire time. Unlocking is always one click away.
 ## Features
 
 - **Mouse-only lock and unlock** with one large button
-- **Compact, resizable interface** that adapts to smaller screens and Windows display scaling
+- **New compact dashboard** with separate status, session-options, and battery cards
+- **Resizable interface** that adapts to smaller screens and Windows display scaling
 - **Global keyboard blocking** while HeadDown is locked
 - **Automatic recovery** when the app closes or stops running
 - **Always-on-top status window** while the keyboard is locked
@@ -29,6 +30,7 @@ The mouse stays active the entire time. Unlocking is always one click away.
 - **Screen Off**, **Dim to 10%**, and **Restore** power-control buttons
 - **Original settings restoration** after unlocking or closing the app
 - **No installation, administrator access, account, or internet connection required**
+- **Windows PowerShell 5.1 smoke test** that compiles the native component and constructs the complete interface on every UI change
 
 ## Quick start
 
@@ -87,7 +89,7 @@ If the interface looks oversized, resize it from any edge or corner. HeadDown no
 
 If HeadDown cannot build or open its interface, the launcher now shows the underlying error in a message box instead of closing silently. Include that message when reporting a problem.
 
-Version 1.1.1 removes the custom compiled UI controls that caused the `Cannot add type. Compilation errors occurred.` startup failure on some Windows PowerShell 5.1 systems. The native keyboard component is now independent of the interface assemblies.
+Version 1.2 removes the custom compiled UI controls that caused the `Cannot add type. Compilation errors occurred.` startup failure on some Windows PowerShell 5.1 systems. The interface now uses reliable native controls and has been rebuilt as a visibly different compact dashboard. Hover over a shortened option for its complete description.
 
 ## Project files
 
@@ -99,6 +101,7 @@ README.md             GitHub project documentation
 LICENSE               MIT license
 HeadDown-Windows.zip   Ready-to-run Windows download
 docs/*.svg             Ready and locked interface previews
+.github/workflows/*    Automated Windows PowerShell 5.1 UI smoke test
 ```
 
 ## Run from PowerShell

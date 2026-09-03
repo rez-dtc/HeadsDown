@@ -1,31 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="440" height="624" viewBox="0 0 440 624" role="img" aria-labelledby="title desc">
-  <title id="title">HeadDown compact ready state</title>
-  <desc id="desc">Preview of the compact, resizable HeadDown interface before keyboard locking.</desc>
-  <rect width="440" height="624" rx="24" fill="#0b0d12"/>
-  <rect x="28" y="22" width="384" height="580" rx="18" fill="#0f1117" stroke="#303747" stroke-width="2"/>
-  <path d="M46 22h348a18 18 0 0 1 18 18v3H28v-3a18 18 0 0 1 18-18z" fill="#6c63ff"/>
-  <text x="48" y="76" fill="#f0f2f7" font-family="Segoe UI,Arial" font-size="28" font-weight="600">HeadDown</text>
-  <text x="49" y="101" fill="#96a0b4" font-family="Segoe UI,Arial" font-size="13">Rest without accidental input</text>
-  <rect x="48" y="120" width="344" height="154" rx="17" fill="#191d26"/>
-  <text x="220" y="148" fill="#74e297" text-anchor="middle" font-family="Segoe UI,Arial" font-size="15" font-weight="600">Keyboard ready</text>
-  <rect x="64" y="162" width="312" height="50" rx="13" fill="#2d965a"/>
-  <text x="220" y="193" fill="#fff" text-anchor="middle" font-family="Segoe UI,Arial" font-size="14" font-weight="700">LOCK KEYBOARD</text>
-  <text x="220" y="236" fill="#f0f2f7" text-anchor="middle" font-family="Segoe UI,Arial" font-size="14" font-weight="600">Timer: off</text>
-  <text x="220" y="258" fill="#96a0b4" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11">Mouse stays active. Closing the app also unlocks it.</text>
-  <text x="50" y="304" fill="#f0f2f7" font-family="Segoe UI,Arial" font-size="15" font-weight="600">Battery: 82% - on battery</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="590" viewBox="0 0 500 590" role="img" aria-labelledby="title desc">
+  <title id="title">HeadDown v1.2 ready dashboard</title>
+  <desc id="desc">Preview of the compact resizable HeadDown dashboard in its ready state.</desc>
+  <rect width="500" height="590" rx="26" fill="#0b0d12"/>
+  <rect x="28" y="24" width="444" height="542" rx="18" fill="#0f1117" stroke="#303747" stroke-width="2"/>
+  <rect x="28" y="24" width="444" height="5" rx="2" fill="#6c63ff"/>
+  <text x="50" y="72" fill="#f0f2f7" font-family="Segoe UI,Arial" font-size="29" font-weight="600">HeadDown</text>
+  <text x="50" y="96" fill="#96a0b4" font-family="Segoe UI,Arial" font-size="13">Rest without accidental input</text>
+  <text x="447" y="67" fill="#6c63ff" text-anchor="end" font-family="Segoe UI,Arial" font-size="13" font-weight="600">v1.2</text>
+
+  <rect x="48" y="115" width="404" height="150" rx="10" fill="#191d26" stroke="#363d4c"/>
+  <text x="250" y="143" fill="#74e297" text-anchor="middle" font-family="Segoe UI,Arial" font-size="15" font-weight="600">Keyboard ready</text>
+  <rect x="64" y="157" width="372" height="54" rx="8" fill="#2d965a"/>
+  <text x="250" y="190" fill="#fff" text-anchor="middle" font-family="Segoe UI,Arial" font-size="15" font-weight="700">LOCK KEYBOARD</text>
+  <text x="250" y="235" fill="#f0f2f7" text-anchor="middle" font-family="Segoe UI,Arial" font-size="14" font-weight="600">Timer: off</text>
+  <text x="250" y="254" fill="#96a0b4" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10">Mouse stays active. Closing the app also unlocks it.</text>
+
+  <rect x="48" y="277" width="404" height="142" rx="10" fill="#191d26" stroke="#363d4c"/>
+  <text x="62" y="300" fill="#6c63ff" font-family="Segoe UI,Arial" font-size="11" font-weight="700">SESSION OPTIONS</text>
   <g font-family="Segoe UI,Arial" font-size="13" fill="#f0f2f7">
-    <rect x="50" y="326" width="16" height="16" rx="4" fill="#6c63ff"/><path d="M54 334l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="76" y="339">Use silent heads-down timer</text>
-    <rect x="328" y="321" width="40" height="25" rx="6" fill="#191d26" stroke="#363d4c"/><text x="348" y="338" text-anchor="middle">20</text><text x="374" y="338" fill="#96a0b4">min</text>
-    <rect x="50" y="358" width="16" height="16" rx="4" fill="#6c63ff"/><path d="M54 366l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="76" y="371">Focus mode - silence notifications</text>
-    <rect x="50" y="390" width="16" height="16" rx="4" fill="#6c63ff"/><path d="M54 398l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="76" y="403">Keep media keys working</text>
-    <rect x="50" y="422" width="16" height="16" rx="4" fill="#6c63ff"/><path d="M54 430l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="76" y="435">Use eco mode while locked</text>
-    <rect x="50" y="454" width="16" height="16" rx="4" fill="#6c63ff"/><path d="M54 462l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="76" y="467">Turn display off after locking</text>
+    <rect x="62" y="315" width="16" height="16" rx="3" fill="#6c63ff"/><path d="M66 323l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="86" y="328">Silent heads-down timer</text>
+    <rect x="354" y="311" width="50" height="25" rx="5" fill="#0f1117" stroke="#4a5264"/><text x="379" y="328" text-anchor="middle">20</text><text x="410" y="328" fill="#96a0b4">min</text>
+    <rect x="62" y="348" width="16" height="16" rx="3" fill="#6c63ff"/><path d="M66 356l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="86" y="361">Silence notifications</text>
+    <rect x="254" y="348" width="16" height="16" rx="3" fill="#6c63ff"/><path d="M258 356l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="278" y="361">Keep media keys</text>
+    <rect x="62" y="381" width="16" height="16" rx="3" fill="#6c63ff"/><path d="M66 389l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="86" y="394">Use eco mode</text>
+    <rect x="254" y="381" width="16" height="16" rx="3" fill="#6c63ff"/><path d="M258 389l3 3 6-7" fill="none" stroke="#fff" stroke-width="2"/><text x="278" y="394">Screen off after 10 sec</text>
   </g>
-  <text x="50" y="497" fill="#96a0b4" font-family="Segoe UI,Arial" font-size="12">Eco mode: OFF</text>
-  <g font-family="Segoe UI,Arial" font-size="11" font-weight="600" fill="#f0f2f7">
-    <rect x="48" y="513" width="106" height="38" rx="10" fill="#191d26"/><text x="101" y="536" text-anchor="middle">DIM 10%</text>
-    <rect x="167" y="513" width="106" height="38" rx="10" fill="#191d26"/><text x="220" y="536" text-anchor="middle">SCREEN OFF</text>
-    <rect x="286" y="513" width="106" height="38" rx="10" fill="#191d26"/><text x="339" y="536" text-anchor="middle">RESTORE</text>
+
+  <rect x="48" y="431" width="404" height="96" rx="10" fill="#191d26" stroke="#363d4c"/>
+  <text x="62" y="455" fill="#f0f2f7" font-family="Segoe UI,Arial" font-size="14" font-weight="600">Battery: 82% - on battery</text>
+  <text x="62" y="475" fill="#96a0b4" font-family="Segoe UI,Arial" font-size="11">Eco mode: OFF</text>
+  <g font-family="Segoe UI,Arial" font-size="10" font-weight="600" fill="#f0f2f7">
+    <rect x="58" y="486" width="122" height="30" rx="6" fill="#242936"/><text x="119" y="505" text-anchor="middle">DIM 10%</text>
+    <rect x="189" y="486" width="122" height="30" rx="6" fill="#242936"/><text x="250" y="505" text-anchor="middle">SCREEN OFF</text>
+    <rect x="320" y="486" width="122" height="30" rx="6" fill="#242936"/><text x="381" y="505" text-anchor="middle">RESTORE</text>
   </g>
-  <text x="220" y="580" fill="#727d92" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10">Resizable window • Scrolls on smaller displays</text>
+  <text x="250" y="550" fill="#727d92" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10">Compact • Resizable • Mouse controlled</text>
 </svg>

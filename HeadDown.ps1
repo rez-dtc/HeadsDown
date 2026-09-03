@@ -1,5 +1,7 @@
-# HeadDown - mouse-controlled keyboard rest mode for Windows 10/11
+# HeadDown v1.2 - mouse-controlled keyboard rest mode for Windows 10/11
 # No installation or administrator rights are required.
+
+param([switch]$SmokeTest)
 
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     [System.Windows.Forms.MessageBox]::Show('HeadDown requires Windows PowerShell 5.1 or newer.', 'HeadDown')
@@ -406,8 +408,8 @@ $accent = [System.Drawing.Color]::FromArgb(108, 99, 255)
 [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'HeadDown'
-$form.ClientSize = New-Object System.Drawing.Size(360, 510)
-$form.MinimumSize = New-Object System.Drawing.Size(360, 420)
+$form.ClientSize = New-Object System.Drawing.Size(380, 450)
+$form.MinimumSize = New-Object System.Drawing.Size(360, 400)
 $form.StartPosition = 'CenterScreen'
 $form.BackColor = $bg
 $form.ForeColor = $text
@@ -415,12 +417,12 @@ $form.FormBorderStyle = 'Sizable'
 $form.MaximizeBox = $true
 $form.AutoScaleMode = 'Font'
 $form.AutoScroll = $true
-$form.AutoScrollMinSize = New-Object System.Drawing.Size(0, 500)
+$form.AutoScrollMinSize = New-Object System.Drawing.Size(0, 440)
 $form.SizeGripStyle = 'Show'
 
 $accentBar = New-Object System.Windows.Forms.Panel
 $accentBar.Location = New-Object System.Drawing.Point(0, 0)
-$accentBar.Size = New-Object System.Drawing.Size(360, 4)
+$accentBar.Size = New-Object System.Drawing.Size(380, 4)
 $accentBar.BackColor = $accent
 $accentBar.Anchor = 'Top, Left, Right'
 $form.Controls.Add($accentBar)
@@ -429,7 +431,7 @@ $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Text = 'HeadDown'
 $titleLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 18)
 $titleLabel.ForeColor = $text
-$titleLabel.Location = New-Object System.Drawing.Point(18, 14)
+$titleLabel.Location = New-Object System.Drawing.Point(16, 12)
 $titleLabel.AutoSize = $true
 $form.Controls.Add($titleLabel)
 
@@ -437,13 +439,23 @@ $subtitleLabel = New-Object System.Windows.Forms.Label
 $subtitleLabel.Text = 'Rest without accidental input'
 $subtitleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $subtitleLabel.ForeColor = $muted
-$subtitleLabel.Location = New-Object System.Drawing.Point(20, 48)
+$subtitleLabel.Location = New-Object System.Drawing.Point(18, 44)
 $subtitleLabel.AutoSize = $true
 $form.Controls.Add($subtitleLabel)
 
+$versionLabel = New-Object System.Windows.Forms.Label
+$versionLabel.Text = 'v1.2'
+$versionLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 8.5)
+$versionLabel.ForeColor = $accent
+$versionLabel.Location = New-Object System.Drawing.Point(320, 19)
+$versionLabel.Size = New-Object System.Drawing.Size(42, 20)
+$versionLabel.TextAlign = 'MiddleRight'
+$versionLabel.Anchor = 'Top, Right'
+$form.Controls.Add($versionLabel)
+
 $statusPanel = New-Object System.Windows.Forms.Panel
-$statusPanel.Location = New-Object System.Drawing.Point(18, 72)
-$statusPanel.Size = New-Object System.Drawing.Size(324, 150)
+$statusPanel.Location = New-Object System.Drawing.Point(16, 66)
+$statusPanel.Size = New-Object System.Drawing.Size(348, 126)
 $statusPanel.BackColor = $panelBg
 $statusPanel.BorderStyle = 'FixedSingle'
 $statusPanel.Anchor = 'Top, Left, Right'
@@ -452,14 +464,14 @@ $form.Controls.Add($statusPanel)
 $statusLabel = New-Object System.Windows.Forms.Label
 $statusLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
 $statusLabel.Location = New-Object System.Drawing.Point(12, 8)
-$statusLabel.Size = New-Object System.Drawing.Size(300, 22)
+$statusLabel.Size = New-Object System.Drawing.Size(322, 20)
 $statusLabel.TextAlign = 'MiddleCenter'
 $statusLabel.Anchor = 'Top, Left, Right'
 $statusPanel.Controls.Add($statusLabel)
 
 $toggleButton = New-Object System.Windows.Forms.Button
-$toggleButton.Location = New-Object System.Drawing.Point(14, 34)
-$toggleButton.Size = New-Object System.Drawing.Size(296, 48)
+$toggleButton.Location = New-Object System.Drawing.Point(13, 31)
+$toggleButton.Size = New-Object System.Drawing.Size(320, 47)
 $toggleButton.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 11)
 $toggleButton.ForeColor = [System.Drawing.Color]::White
 $toggleButton.FlatStyle = 'Flat'
@@ -472,8 +484,8 @@ $timerDisplayLabel = New-Object System.Windows.Forms.Label
 $timerDisplayLabel.Text = 'Timer: off'
 $timerDisplayLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
 $timerDisplayLabel.ForeColor = $text
-$timerDisplayLabel.Location = New-Object System.Drawing.Point(10, 87)
-$timerDisplayLabel.Size = New-Object System.Drawing.Size(304, 22)
+$timerDisplayLabel.Location = New-Object System.Drawing.Point(9, 81)
+$timerDisplayLabel.Size = New-Object System.Drawing.Size(328, 20)
 $timerDisplayLabel.TextAlign = 'MiddleCenter'
 $timerDisplayLabel.Anchor = 'Top, Left, Right'
 $statusPanel.Controls.Add($timerDisplayLabel)
@@ -481,29 +493,53 @@ $statusPanel.Controls.Add($timerDisplayLabel)
 $countdownLabel = New-Object System.Windows.Forms.Label
 $countdownLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8.5)
 $countdownLabel.ForeColor = $muted
-$countdownLabel.Location = New-Object System.Drawing.Point(10, 113)
-$countdownLabel.Size = New-Object System.Drawing.Size(304, 28)
+$countdownLabel.Location = New-Object System.Drawing.Point(9, 101)
+$countdownLabel.Size = New-Object System.Drawing.Size(328, 19)
 $countdownLabel.TextAlign = 'MiddleCenter'
 $countdownLabel.Anchor = 'Top, Left, Right'
 $statusPanel.Controls.Add($countdownLabel)
 
+$settingsPanel = New-Object System.Windows.Forms.Panel
+$settingsPanel.Location = New-Object System.Drawing.Point(16, 202)
+$settingsPanel.Size = New-Object System.Drawing.Size(348, 112)
+$settingsPanel.BackColor = $panelBg
+$settingsPanel.BorderStyle = 'FixedSingle'
+$settingsPanel.Anchor = 'Top, Left, Right'
+$form.Controls.Add($settingsPanel)
+
+$settingsHeading = New-Object System.Windows.Forms.Label
+$settingsHeading.Text = 'SESSION OPTIONS'
+$settingsHeading.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 8)
+$settingsHeading.ForeColor = $accent
+$settingsHeading.Location = New-Object System.Drawing.Point(11, 6)
+$settingsHeading.AutoSize = $true
+$settingsPanel.Controls.Add($settingsHeading)
+
+$batteryPanel = New-Object System.Windows.Forms.Panel
+$batteryPanel.Location = New-Object System.Drawing.Point(16, 322)
+$batteryPanel.Size = New-Object System.Drawing.Size(348, 82)
+$batteryPanel.BackColor = $panelBg
+$batteryPanel.BorderStyle = 'FixedSingle'
+$batteryPanel.Anchor = 'Top, Left, Right'
+$form.Controls.Add($batteryPanel)
+
 $batteryLabel = New-Object System.Windows.Forms.Label
 $batteryLabel.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
 $batteryLabel.ForeColor = $text
-$batteryLabel.Location = New-Object System.Drawing.Point(20, 232)
-$batteryLabel.Size = New-Object System.Drawing.Size(320, 22)
+$batteryLabel.Location = New-Object System.Drawing.Point(11, 5)
+$batteryLabel.Size = New-Object System.Drawing.Size(324, 20)
 $batteryLabel.Anchor = 'Top, Left, Right'
-$form.Controls.Add($batteryLabel)
+$batteryPanel.Controls.Add($batteryLabel)
 
 $timerCheck = New-Object System.Windows.Forms.CheckBox
-$timerCheck.Text = 'Use silent heads-down timer'
+$timerCheck.Text = 'Silent heads-down timer'
 $timerCheck.Checked = $true
 $timerCheck.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 9.5)
 $timerCheck.ForeColor = $text
 $timerCheck.FlatStyle = 'Flat'
-$timerCheck.Location = New-Object System.Drawing.Point(20, 258)
-$timerCheck.Size = New-Object System.Drawing.Size(210, 24)
-$form.Controls.Add($timerCheck)
+$timerCheck.Location = New-Object System.Drawing.Point(11, 25)
+$timerCheck.Size = New-Object System.Drawing.Size(200, 24)
+$settingsPanel.Controls.Add($timerCheck)
 
 $timerMinutes = New-Object System.Windows.Forms.NumericUpDown
 $timerMinutes.Minimum = 1
@@ -513,72 +549,80 @@ $timerMinutes.Font = New-Object System.Drawing.Font('Segoe UI Semibold', 10)
 $timerMinutes.ForeColor = $text
 $timerMinutes.BackColor = $panelBg
 $timerMinutes.BorderStyle = 'FixedSingle'
-$timerMinutes.Location = New-Object System.Drawing.Point(266, 258)
-$timerMinutes.Size = New-Object System.Drawing.Size(56, 24)
+$timerMinutes.Location = New-Object System.Drawing.Point(268, 25)
+$timerMinutes.Size = New-Object System.Drawing.Size(48, 24)
 $timerMinutes.Anchor = 'Top, Right'
-$form.Controls.Add($timerMinutes)
+$settingsPanel.Controls.Add($timerMinutes)
 
 $minutesLabel = New-Object System.Windows.Forms.Label
 $minutesLabel.Text = 'min'
 $minutesLabel.Font = New-Object System.Drawing.Font('Segoe UI', 9)
 $minutesLabel.ForeColor = $muted
-$minutesLabel.Location = New-Object System.Drawing.Point(326, 261)
+$minutesLabel.Location = New-Object System.Drawing.Point(319, 28)
 $minutesLabel.Anchor = 'Top, Right'
 $minutesLabel.AutoSize = $true
-$form.Controls.Add($minutesLabel)
+$settingsPanel.Controls.Add($minutesLabel)
 
 $focusCheck = New-Object System.Windows.Forms.CheckBox
-$focusCheck.Text = 'Focus mode - silence notifications while locked'
+$focusCheck.Text = 'Silence notifications'
 $focusCheck.Checked = $true
 $focusCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $focusCheck.ForeColor = $text
 $focusCheck.FlatStyle = 'Flat'
-$focusCheck.Location = New-Object System.Drawing.Point(20, 286)
-$focusCheck.Size = New-Object System.Drawing.Size(320, 24)
-$focusCheck.Anchor = 'Top, Left, Right'
-$form.Controls.Add($focusCheck)
+$focusCheck.Location = New-Object System.Drawing.Point(11, 53)
+$focusCheck.Size = New-Object System.Drawing.Size(150, 24)
+$settingsPanel.Controls.Add($focusCheck)
 
 $mediaKeysCheck = New-Object System.Windows.Forms.CheckBox
-$mediaKeysCheck.Text = 'Keep volume and playback media keys working'
+$mediaKeysCheck.Text = 'Keep media keys'
 $mediaKeysCheck.Checked = $true
 $mediaKeysCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $mediaKeysCheck.ForeColor = $text
 $mediaKeysCheck.FlatStyle = 'Flat'
-$mediaKeysCheck.Location = New-Object System.Drawing.Point(20, 314)
-$mediaKeysCheck.Size = New-Object System.Drawing.Size(320, 24)
-$mediaKeysCheck.Anchor = 'Top, Left, Right'
-$form.Controls.Add($mediaKeysCheck)
+$mediaKeysCheck.Location = New-Object System.Drawing.Point(197, 53)
+$mediaKeysCheck.Size = New-Object System.Drawing.Size(138, 24)
+$mediaKeysCheck.Anchor = 'Top, Right'
+$settingsPanel.Controls.Add($mediaKeysCheck)
 
 $ecoCheck = New-Object System.Windows.Forms.CheckBox
-$ecoCheck.Text = 'Use eco mode while keyboard is locked'
+$ecoCheck.Text = 'Use eco mode'
 $ecoCheck.Checked = $true
 $ecoCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $ecoCheck.ForeColor = $text
 $ecoCheck.FlatStyle = 'Flat'
-$ecoCheck.Location = New-Object System.Drawing.Point(20, 342)
-$ecoCheck.Size = New-Object System.Drawing.Size(320, 24)
-$ecoCheck.Anchor = 'Top, Left, Right'
-$form.Controls.Add($ecoCheck)
+$ecoCheck.Location = New-Object System.Drawing.Point(11, 79)
+$ecoCheck.Size = New-Object System.Drawing.Size(150, 24)
+$settingsPanel.Controls.Add($ecoCheck)
 
 $screenOffCheck = New-Object System.Windows.Forms.CheckBox
-$screenOffCheck.Text = 'Turn display off 10 seconds after locking'
+$screenOffCheck.Text = 'Screen off in 10 sec'
 $screenOffCheck.Checked = $true
 $screenOffCheck.Font = New-Object System.Drawing.Font('Segoe UI', 9.5)
 $screenOffCheck.ForeColor = $text
 $screenOffCheck.FlatStyle = 'Flat'
-$screenOffCheck.Location = New-Object System.Drawing.Point(20, 370)
-$screenOffCheck.Size = New-Object System.Drawing.Size(320, 24)
-$screenOffCheck.Anchor = 'Top, Left, Right'
-$form.Controls.Add($screenOffCheck)
+$screenOffCheck.Location = New-Object System.Drawing.Point(197, 79)
+$screenOffCheck.Size = New-Object System.Drawing.Size(138, 24)
+$screenOffCheck.Anchor = 'Top, Right'
+$settingsPanel.Controls.Add($screenOffCheck)
+
+$toolTip = New-Object System.Windows.Forms.ToolTip
+$toolTip.AutoPopDelay = 8000
+$toolTip.InitialDelay = 400
+$toolTip.ReshowDelay = 100
+$toolTip.SetToolTip($timerCheck, 'Run a silent countdown while the keyboard is locked.')
+$toolTip.SetToolTip($focusCheck, 'Temporarily silence normal Windows toast notifications.')
+$toolTip.SetToolTip($mediaKeysCheck, 'Allow volume and playback keys while normal typing stays blocked.')
+$toolTip.SetToolTip($ecoCheck, 'Use Power Saver and dim supported built-in displays while locked.')
+$toolTip.SetToolTip($screenOffCheck, 'Turn the display off 10 seconds after locking; move the mouse to wake it.')
 
 $powerStateLabel = New-Object System.Windows.Forms.Label
 $powerStateLabel.Text = 'Eco mode: OFF'
 $powerStateLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8.5)
 $powerStateLabel.ForeColor = $muted
-$powerStateLabel.Location = New-Object System.Drawing.Point(20, 399)
-$powerStateLabel.Size = New-Object System.Drawing.Size(320, 20)
+$powerStateLabel.Location = New-Object System.Drawing.Point(11, 25)
+$powerStateLabel.Size = New-Object System.Drawing.Size(324, 17)
 $powerStateLabel.Anchor = 'Top, Left, Right'
-$form.Controls.Add($powerStateLabel)
+$batteryPanel.Controls.Add($powerStateLabel)
 
 function New-PowerButton {
     param([string]$Caption)
@@ -598,12 +642,12 @@ function New-PowerButton {
 }
 
 $powerButtonsPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$powerButtonsPanel.Location = New-Object System.Drawing.Point(16, 426)
-$powerButtonsPanel.Size = New-Object System.Drawing.Size(328, 38)
+$powerButtonsPanel.Location = New-Object System.Drawing.Point(7, 45)
+$powerButtonsPanel.Size = New-Object System.Drawing.Size(332, 29)
 $powerButtonsPanel.Anchor = 'Top, Left, Right'
 $powerButtonsPanel.ColumnCount = 3
 $powerButtonsPanel.RowCount = 1
-$powerButtonsPanel.BackColor = $bg
+$powerButtonsPanel.BackColor = $panelBg
 $powerButtonsPanel.Padding = New-Object System.Windows.Forms.Padding(0)
 foreach ($columnWidth in @(33.33, 33.33, 33.34)) {
     $columnStyle = New-Object System.Windows.Forms.ColumnStyle
@@ -611,7 +655,7 @@ foreach ($columnWidth in @(33.33, 33.33, 33.34)) {
     $columnStyle.Width = [single]$columnWidth
     $powerButtonsPanel.ColumnStyles.Add($columnStyle) | Out-Null
 }
-$form.Controls.Add($powerButtonsPanel)
+$batteryPanel.Controls.Add($powerButtonsPanel)
 
 $dimButton = New-PowerButton -Caption 'DIM 10%'
 $screenButton = New-PowerButton -Caption 'SCREEN OFF'
@@ -624,8 +668,8 @@ $footerLabel = New-Object System.Windows.Forms.Label
 $footerLabel.Text = 'The mouse always works. Ctrl+Alt+Delete is kept by Windows.'
 $footerLabel.Font = New-Object System.Drawing.Font('Segoe UI', 8)
 $footerLabel.ForeColor = $muted
-$footerLabel.Location = New-Object System.Drawing.Point(18, 470)
-$footerLabel.Size = New-Object System.Drawing.Size(324, 28)
+$footerLabel.Location = New-Object System.Drawing.Point(16, 412)
+$footerLabel.Size = New-Object System.Drawing.Size(348, 24)
 $footerLabel.TextAlign = 'MiddleCenter'
 $footerLabel.Anchor = 'Top, Left, Right'
 $form.Controls.Add($footerLabel)
@@ -710,5 +754,17 @@ $form.Add_FormClosing({
 
 Set-LabelState -IsLocked $false
 Update-BatteryStatus
+
+if ($SmokeTest) {
+    $null = $form.Handle
+    $screenOffTimer.Stop()
+    $restTimer.Stop()
+    $batteryTimer.Stop()
+    [KeyboardBlocker]::Unlock()
+    $form.Dispose()
+    Write-Output 'HeadDown Windows PowerShell 5.1 smoke test passed.'
+    exit 0
+}
+
 $batteryTimer.Start()
 [System.Windows.Forms.Application]::Run($form)
